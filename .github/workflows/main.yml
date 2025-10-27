@@ -2,8 +2,8 @@ name: Build and Push Docker Image
 
 on:
   push:
-    branches: [ main ]   # 推送到 main 分支时构建
-  workflow_dispatch:     # 手动触发也可以
+    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -11,12 +11,15 @@ jobs:
 
     permissions:
       contents: read
-      packages: write     # 允许推送到 GHCR
-      id-token: write     # 若使用 OIDC 认证也需要
+      packages: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Set lowercase owner name
+        id: repo
+        run: echo "owner_lower=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_OUTPUT
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -31,5 +34,5 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ github.run_number }}
+            ghcr.io/${{ steps.repo.outputs.owner_lower }}/fiora:latest
+            ghcr.io/${{ steps.repo.outputs.owner_lower }}/fiora:${{ github.run_number }}
